@@ -240,12 +240,15 @@ A IA **otimiza o uso do capital humano** ao selecionar cirurgicamente os casos m
 - Python 3.10+
 - Jupyter Notebook ou JupyterLab
 
-### Instalação
-
-```bash
+```
 # Clone o repositório
 git clone https://github.com/seu-usuario/healthcare-cost-prediction.git
 cd healthcare-cost-prediction
+
+# Crie e ative o ambiente virtual
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Linux/Mac
 
 # Instale as dependências
 pip install -r requirements.txt
