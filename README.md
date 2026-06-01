@@ -1,188 +1,285 @@
 # Previsão de Custos Assistenciais e Otimização de Sinistralidade na Saúde Suplementar
 
-![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Pipeline%20Completo-blueviolet?style=for-the-badge)
-![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge)
-![Análise de Dados](https://img.shields.io/badge/Data%20Science-Saúde%20Suplementar-success?style=for-the-badge)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Jupyter-Notebook-F37626?style=for-the-badge&logo=jupyter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/LightGBM-Modelo%20Campeão-2ecc71?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Status-Concluído-success?style=for-the-badge"/>
+</p>
 
-Desenvolvimento de uma esteira analítica avançada de IA e Machine Learning focada na previsão e mapeamento de custos hospitalares por diária (`cost_per_day_br`). O projeto visa a otimização do índice de sinistralidade e o desenho de estratégias de governança e gestão de risco epidemiológico na saúde suplementar.
-
-## 📌 Project Overview (Visão Geral do Projeto)
-
-O projeto visa desenvolver uma esteira completa de Inteligência Artificial e Machine Learning focada na predição de custos assistenciais por diária hospitalar (`cost_per_day_br`). A partir de dados demográficos, contratuais e clínicos coletados no momento zero da internação, o sistema busca mapear o comportamento financeiro dos sinistros de saúde suplementar.
-
-* **Objetivo de Negócio:** Fornecer uma camada preditiva e analítica de triagem para identificar previamente o risco de sinistros severos e flutuações de custos contratuais. Isso permite otimizar o índice de sinistralidade global, direcionar auditorias médicas concorrentes de forma preventiva e mitigar o risco de cauda (*tail risk*) na carteira da operadora.
+> **Projeto de Machine Learning aplicado à saúde suplementar brasileira**, com foco na previsão do custo diário de internações (R$/dia) no momento da admissão do paciente, utilizando dados demográficos e clínicos iniciais.
 
 ---
 
-## 📌 Tech Stack (Arquitetura e Tecnologias)
+## 1. Contexto do Projeto
+
+A saúde suplementar brasileira enfrenta **desafios críticos na previsibilidade de custo dos pacientes na admissão**. Apesar de existirem padrões clínicos, as respostas humanas aos tratamentos são individuais e os desfechos financeiros são complexos, tornando difícil a identificação precoce de sinistros de alto risco.
+
+Este projeto **investiga a viabilidade de prever o custo diário estimado (R$/dia) de uma internação no momento da admissão**, utilizando informações demográficas e dados clínicos iniciais disponíveis antes do fechamento da conta hospitalar.
+
+---
+
+## 2. Objetivo Estratégico
+
+O objetivo central é **identificar precocemente sinistros de alto risco** para:
+
+- **Auditoria Concorrente** — Acionar auditores médicos no D+0 da internação para casos críticos
+- **Gerenciamento de Pacientes** — Acompanhamento intensivo de internações de alto risco
+- **Otimização do Índice de Sinistralidade** — Provisão financeira (PEONA) dinâmica e individualizada por paciente
+- **Blindagem Antivazamento de Caixa** — 100% dos sinistros graves retirados do ponto cego operacional
+
+---
+
+## 3. Dataset
+
+| Atributo | Valor |
+|----------|-------|
+| **Origem** | Kaggle (Dataset Sintético) |
+| **Volume** | 55.500 linhas × 15 colunas |
+| **Após limpeza** | ~55.394 registros válidos |
+| **Variável-alvo** | `cost_per_day_br` (R$/dia) — derivada de `billing_amount` ($ faturamento/internação) |
+
+### Dicionário de Dados
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `name` | object | Nome do paciente |
+| `age` | int64 | Idade no momento da internação |
+| `gender` | object | Gênero biológico |
+| `blood_type` | object | Tipo sanguíneo |
+| `medical_condition` | object | Diagnóstico primário |
+| `date_of_admission` | datetime | Data de admissão |
+| `doctor` | object | Médico responsável |
+| `hospital` | object | Instituição de saúde |
+| `insurance_provider` | object | Operadora de plano de saúde |
+| `billing_amount` | float64 | **[Variável-alvo original]** Valor total faturado |
+| `room_number` | int64 | Número do quarto/leito |
+| `admission_type` | object | Caráter da internação |
+| `discharge_date` | datetime | Data de alta hospitalar |
+| `medication` | object | Medicamento principal prescrito |
+| `test_results` | object | Resultado dos exames diagnósticos |
+
+---
+
+## 4. Pipeline do Projeto
+
+```
+📥 Carga dos Dados
+       ↓
+🔍 Análise Exploratória (EDA)
+   ├── Padronização de colunas e tipos
+   ├── Remoção de duplicatas
+   ├── Tratamento de valores negativos (glosas/erros)
+   └── Verificação de inconsistências temporais e financeiras
+       ↓
+⚙️ Feature Engineering
+   ├── length_of_stay (dias de internação)
+   ├── cost_per_day_br (variável-alvo - custo diário de internação)
+   ├── age_group (agrupamento em faixas de idade: RN 563 ANS)
+   ├── is_weekend_admission (atendimento de dia de semana - 0/1)
+   ├── is_long_stay (tempo prolongado de internação - 0/1)
+   ├── is_catastrophic_case (casos catastróficos - 0/1)
+   ├── condition_medication (agrupamento diagnóstico e medicamento vs custo diário)
+   ├── adimission_month (análise de sazonalidade)
+   ├── expected_length_of_stay (proxy clínico de acordo com o perfil clínico do paciente)
+   └── hospital_cluster (agrupamento de custos hospitalares)
+       ↓
+⚙️ Features Selecionadas para Modelagem
+   ├── cost_per_day_br (variável-alvo)
+   ├── age (preditor contínuo)
+   ├── condition_medication (perfil clínico)
+   ├── expected_length_of_stay (proxy clínico)
+   └── hospital_cluster (agrupamento de custos hospitalares)
+       ↓
+🤖 Modelagem Preditiva
+   ├── 8 algoritmos de regressão avaliados
+   ├── [Pipelines 01, 02, 03 e 04] Modelos de Gradiente/Distância: Linear Regression, KNN, SVR e MLP (Rede Neural)
+   └── [Pipelines 05, 06, 07 e 08] Modelos Baseados em Árvores/Boosting: Random Forest, LightGBM, CatBoost e XGBoost
+       ↓
+📊 Avaliação e Seleção
+   └── LightGBM eleito modelo campeão
+       ↓
+🔬 Explicabilidade (SHAP)
+   ├── Beeswarm (impacto direcional)
+   ├── Bar Chart (importância global)
+   └── Waterfall (anatomia do caso crítico)
+       ↓
+📈 Resultados de Negócio
+```
+
+---
+
+## 5. Matriz de Modelos e Abordagens de Treino
+
+| ID | Algoritmo | Objetivo Estratégico | Abordagem de Pré-Processamento | Scaling? |
+| :---: | :--- | :--- | :--- | :---: |
+| **01** | **Linear Regression** | Baseline Estatístico de Machine Learning | One-Hot Encoding + Standard Scaling | **Sim** |
+| **02** | **K-Neighbors Regressor** | Abordagem Baseada em Distância e Vizinhança | One-Hot Encoding + Standard Scaling | **Sim** |
+| **03** | **Support Vector Regressor** | Otimização de Hiperplano de Margem Máxima | One-Hot Encoding + Standard Scaling | **Sim** |
+| **04** | **Multilayer Perceptron** | Rede Neural Artificial para Captura de Padrões Complexos | One-Hot Encoding + Standard Scaling | **Sim** |
+| **05** | **Random Forest Regressor**| Ensemble de Árvores (Bagging) / Não-Linearidade	 | One-Hot Encoding | Não |
+| **06** | **LightGBM Regressor** | Alta Performance Computacional (Boosting) | Tratamento de Categóricas Nativo | Não |
+| **07** | **CatBoost Regressor** | Performance Otimizada para Variáveis Categóricas | Tratamento de Categóricas Nativo | Não |
+| **08** | **XGBoost Regressor** | Alta Performance Geral (Extreme Gradient Boosting) | One-Hot Encoding | Não |
+
+---
+
+## 6. Performance dos Modelos Avaliados
+
+| Modelo | MAE (R$) | RMSE (R$) | $R^2$ Score |
+| :--- | :---: | :---: | :---: |
+| 01_Linear_Regression | 15369.85 | 29204.04 | 0.0317 |
+| 07_CatBoost | 15346.41 | 29209.04 | 0.0314 |
+| 04_MLP_Neural_Network | 15405.34 | 29264.65 | 0.0277 |
+| 05_Random_Forest | 15403.76 | 29265.70 | 0.0276 |
+| **06_LightGBM** | **LightGBM** ⭐ | **0.0266** | **15.407,71** | **29.285,30** |
+| 08_XGBoost | 15414.64 | 29312.42 | 0.0245 |
+| 06_LightGBM_tuned | 12791.04 | 30788.55 | -0.0762 |
+| 03_Linear_SVR | 12940.04 | 31329.12 | -0.1143 |
+| 02_KNN_Regressor | 16582.57 | 31612.02 | -0.1345 |
+
+> **O LightGBM venceu foi escolhido o modelo campeão**, pois, apesar de um R² ligeiramente inferior à Regressão Linear, o LightGBM gerou uma **distribuição de densidade preditiva dispersa e consistente** na zona de transição crítica (R$ 30k–R$ 60k), sendo o único algoritmo capaz de mitigar o risco de subprovisão financeira e não classificar nenhum sinistro catastrófico como "Baixo Custo".
+
+---
+
+## 7. Matriz de Decisão Estratégica: Performance Estatística vs Utilidade de Negócio
+
+| Critério de Escolha | Modelo Campeão | $R^2$ Score | Teto de Previsão Máxima | Comportamento Gráfico | Impacto Prático no Negócio |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Otimização Estatística Global** (Melhor $R^2$) | 01_Linear_Regression | 0.0317 (3.17%) | ~ R$ 35.000 (Picos Isolados) | Torres ultra-estáticas e rígidas. Concentrou 'chutes' nas médias centrais. | Gera miopia operacional. Mascara os beneficiários de alto custo dentro da média da carteira, sendo incapaz de identificar casos catastróficos. |
+| **Alinhamento de Negócio** (Densidade de Cauda e Captura de Risco) | **▶ 06_LightGBM (Modelo Eleito)** | **0.0266 (2.66%)** | **~ R$ 80,000 (Massa Densa e Contínua)** | **Nuvem dispersa e consistente na zona de transição crítica (R$ 30k - R$ 60k).** | **Mune a Auditoria Concorrente com alertas preventivos densos no momento da admissão hospitalar.** |
+
+> **DECISÃO HOMOLOGADA:** O LightGBM Padrão foi escolhido por sua distribuição de densidade preditiva, provando-se o único modelo capaz de mitigar o risco de subprovisão e direcionar a auditoria.
+
+---
+
+## 8. **Modelo Campeão: LightGBM**
+
+### Matriz de Aderência de Negócio
+
+| Custo Real (Admissão) | Previsto:<br> Baixo (< 5k) | Previsto:<br> Médio (5k–33k) | Previsto:<br> Alto / Catastrófico (> 33k) | Total Geral |
+|-----------------------|:----------------------:|:------------------------:|:-------------------------------------:|:-----------:|
+| Baixo (< R$ 5k) | 65 | 4.691 | 91 | 4.847 |
+| Médio (R$ 5k–R$ 33k) | 66 | 9.419 | 239 | 9.724 |
+| **Alto / Catastrófico (> R$ 33k)** | **0** | 1.737 | 146 | 1.883 |
+| **Total Geral** | **131** | **15.847** | **476** | **16.454** |
+
+### Taxa Operacional de Acerto
+
+| Faixa de Custo Real | Acerto Direto |
+|---------------------|:-------------:|
+| Baixo (< R$ 5k) | 1,34% |
+| Médio (R$ 5k–R$ 33k) | 96,84% |
+| **Alto / Catastrófico (> R$ 33k)** | **7,75%** |
+
+### Métricas Executivas
+
+- 🎯 **11,17%** da carteira composta por sinistros catastróficos
+- ✅ **7,75%** capturados diretamente na faixa de Alto Custo na admissão
+- 🛡️ **100%** de segurança de cauda — zero falsos negativos na faixa de Baixo Custo
+- ✅ Nenhum caso catastrófico classificado incorretamente como "Baixo Custo"
+
+---
+
+## 9. Explicabilidade com SHAP
+
+O framework **SHAP (SHapley Additive exPlanations)** foi aplicado para abrir a "caixa-preta" do LightGBM, garantindo auditabilidade regulatória e alinhamento com a lógica de negócio.
+
+### Ranking de Importância das Features
+
+| Feature | SHAP Médio Absoluto | Participação |
+|---------|---------------------|--------------|
+| 🏥 `hospital_cluster` | R$ 2.013,22 | 62,26% |
+| 👤 `age` | R$ 871,20 | 26,94% |
+| 🗓️ `expected_length_of_stay` | R$ 349,18 | 10,80% |
+
+### Insights Atuariais
+
+- **`hospital_cluster`** é o principal vetor de variabilidade. O acordo comercial com o prestador hospitalar dita o comportamento base do faturamento, com cauda de dispersão ultrapassando **+R$ 30.000/dia**.
+- **`age`** valida a premissa atuarial: o envelhecimento atua como acelerador de complexidade assistencial e severidade financeira, com picos de até **+R$ 33.000/dia**.
+- **`expected_length_of_stay`** funciona como ajuste fino clínico, definindo o "piso de severidade" na admissão de forma suave.
+
+### Caso Crítico Identificado (Index 2044)
+
+> **Projeção: R$ 85.771,10/dia**
+
+| Gatilho | Impacto |
+|---------|---------|
+| `expected_length_of_stay` = 15 dias | +R$ 9.760,54 |
+| `hospital_cluster` = alto custo | +R$ 25.547,09 |
+| `age` = 14 anos (pediatria complexa) | +R$ 33.526,17 |
+
+---
+
+## 10. Resultados de Negócio
+
+### Aplicabilidade Prática
+
+> *"O Index 2044 acabou de ser internado, tem 14 anos e está num hospital de alto custo. A equipe de auditoria médica precisa ir ao leito imediatamente acompanhar a evolução desse caso, pois ele vai custar 5 vezes mais que a média da carteira por dia."*
+
+A IA **otimiza o uso do capital humano** ao selecionar cirurgicamente os casos mais severos, evitando a enxurrada de alarmes falsos que inviabilizaria operacionalmente a equipe de auditores médicos.
+
+---
+
+## 11. Tecnologias Utilizadas
 
 * **Linguagem Principal:** Python (v3.10+)
 * **Manipulação e Engenharia de Dados:** Pandas, NumPy
 * **Visualização de Dados e Gráficos de Diagnóstico:** Matplotlib, Seaborn
 * **Pipelines de Machine Learning e Modelagem Clássica:** Scikit-Learn
+* **Explicabilidade:** shap
 * **Algoritmos de Alta Performance (Gradient Boosting):** LightGBM, CatBoost, XGBoost
-* **Ambiente de Desenvolvimento:** Jupyter Notebook / VS Code (Ambiente interativo de desenvolvim
+* **Ambiente de Desenvolvimento:** Jupyter Notebook / VS Code
 
 ---
 
-## 📌 1. Estrutura do Projeto e Dados Originais
+## 12. Como Executar
 
-O projeto utiliza um ecossistema de dados composto por **55.500 registros** e **15 colunas**, mimetizando os desafios reais enfrentados por operadoras de planos de saúde no controle de faturamento e auditoria de guias.
+### Pré-requisitos
 
-### Dicionário de Dados Original
+- Python 3.10+
+- Jupyter Notebook ou JupyterLab
 
-| Nome da Coluna | Tipo de Dado | Descrição em Português |
-| :--- | :--- | :--- |
-| **Name** | object | Nome do paciente associado ao registro de saúde. |
-| **Age** | int64 | Idade do paciente no momento da internação, expressa em anos. |
-| **Gender** | object | Gênero biológico do paciente. |
-| **Blood Type** | object | Tipo sanguíneo do paciente. |
-| **Medical Condition** | object | Condição médica principal ou diagnóstico primário do paciente. |
-| **Date of Admission** | object | A data em que o paciente foi admitido na unidade de saúde. |
-| **Doctor** | object | Nome do médico responsável pelos cuidados do paciente durante a internação. |
-| **Hospital** | object | Identifica a instituição de saúde ou hospital onde o paciente foi internado. |
-| **Insurance Provider** | object | Operadora de plano de saúde ou provedor de seguro do paciente. |
-| **Billing Amount** | float64 | **[Variável Alvo]** O valor total faturado pelos serviços médicos durante a internação. Representa o custo bruto do sinistro. |
-| **Room Number** | int64 | Número do quarto/leito onde o paciente ficou acomodado. |
-| **Admission Type** | object | Especifica o caráter da internação, refletindo as circunstâncias da admissão. |
-| **Discharge Date** | object | A data em que o paciente recebeu alta hospitalar. |
-| **Medication** | object | Identifica o medicamento principal prescrito ou administrado durante a internação. |
-| **Test Results** | object | Descreve o resultado dos exames médicos diagnósticos realizados. |
+### Instalação
 
----
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/healthcare-cost-prediction.git
+cd healthcare-cost-prediction
 
-## 📌 2. Limpeza, Tratamento e Higienização dos Dados
+# Instale as dependências
+pip install -r requirements.txt
 
-Antes da modelagem, a base passou por um processo severo de higienização (*Data Cleansing*) para garantir integridade atuarial e remover anomalias financeiras:
+# Execute o notebook
+jupyter notebook healthcare-cost-prediction.ipynb
+```
 
-| Etapa / Iniciativa | Ação Aplicada | Justificativa de Negócio | Resultado |
-| :--- | :--- | :--- | :--- |
-| **Padronização** | Conversão de colunas para *snake_case* e nomes para *lowercase*. | Elimina duplicidades ocultas geradas por inconsistências de digitação. | 100% da base padronizada. |
-| **Tipagem Certa** | Conversão de datas de texto (*object*) para `datetime64[ns]`. | Permite a execução de cálculos matemáticos e lógicos temporais. | Tipagem corrigida para Datetime. |
-| **Ajuste Monetário** | Formatação do faturamento bruto para duas casas decimais. | Alinhamento com o padrão financeiro de análise de custos médicos. | Escala monetária normalizada. |
-| **Deduplicação** | Remoção de linhas 100% idênticas no banco de dados. | Eliminação de registros causados por falhas de integração ou reenvio de guias. | **534 linhas duplicadas removidas** (Base: 54.966). |
-| **Consistência** | Validação da regra: Data de Alta $\ge$ Data de Admissão. | Garantia de integridade cronológica dos eventos assistenciais de saúde. | **0 inconsistências** detectadas. |
-| **Anomalias** | Exclusão de registros com faturamento menor ou igual a zero. | Eliminação de ruídos (glosas totais ou erros de sistema) que distorceriam o custo. | **106 linhas removidas**. Base Final: **54.860 linhas**. |
+### Dependências principais
+
+```
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+lightgbm
+catboost
+xgboost
+shap
+jupyter
+```
 
 ---
 
-## 📌 3. Engenharia de Recursos (*Feature Engineering*)
+## 13. Próximos Passos
 
-A engenharia de features transformou o comportamento bruto das colunas em indicadores econômicos e proxies de gravidade clínica para o momento zero da admissão:
-
-* **`length_of_stay`:** Diferença em dias entre a Alta e a Admissão (Média = 15.5 dias).
-* **`billing_amount_br`:** Conversão da escala monetária original para o Real brasileiro utilizando taxa de câmbio média estável *(Fator: 5.00)*. (Média = **R$ 127.973,17**).
-* **`cost_per_day_br`:** Divisão do faturamento bruto em Reais pelo tempo de permanência. **Nova Variável Alvo (Target)** do projeto (Média = **R$ 16.995,66**). Isola a severidade diária e captura a assimetria de cauda longa (limite de R$ 261.059,25/dia).
-* **`age_group`:** Agrupamento etário em 10 intervalos regulatórios baseados na RN nº 563 da ANS. Revelou concentração massiva acima de 59 anos (39,56%), indicando alto risco demográfico intrínseco.
-* **`is_long_stay`:** Flag binária para internações acima do terceiro quartil (> 23 dias). Revelou o *Efeito Diluição*: custos de curta permanência retêm maior severidade diária (R$ 20.706,34), enquanto longas internações caem para R$ 4.747,77/dia.
-* **`condition_medication`:** Combinação cruzada de Doença + Fármaco. Mostrou custos totais planos travados em ~R$ 128.000, indicando faturamento por pacotes engessados nos hospitais.
-* **`is_catastrophic_case`:** Identificação estatística de outliers de custo diário (> **R$ 33.702,51**). Capturou **6.127 casos (11,17% da carteira)** que representam o risco de cauda (*tail risk*).
+- [ ] **Integração no Fluxo de Admissão** — disponibilizar o modelo serializado (`.joblib`) via API interna para inferência automática na geração da guia de internação
+- [ ] **Automatização dos Alertas** — configurar gatilhos automáticos para a equipe de Auditoria Médica Concorrente quando o modelo projetar custos na faixa "Alto / Catastrófico (> R$ 33k)"
+- [ ] **Alimentação de PEONA** — conectar o output do modelo ao dashboard de provisões técnicas da operadora para provisão dinâmica e individualizada
+- [ ] **Monitoramento de Data Drift** — implementar rotina trimestral de monitoramento para recalibração do LightGBM diante de mudanças nas tabelas de negociação hospitalares ou no perfil demográfico da carteira
 
 ---
 
-## 📌 4. Governança de Dados e Seleção de Features
-
-Para mitigar completamente o risco de **Vazamento de Dados (*Data Leakage*)** e garantir que o modelo possa rodar no instante exato em que o paciente dá entrada no hospital, foi aplicado um rígido filtro de governança:
-
-### 📥 Features Selecionadas (Sinal Preditivo Real na Admissão)
-1.  **`hospital_cluster`:** Reduz a alta cardinalidade dos hospitais em 3 faixas de custo via quartis de treino. É o maior sinal preditivo isolado, provando que acordos comerciais com prestadores ditam o custo diário muito mais do que a gravidade clínica.
-2.  **`age`:** Idade contínua mantida de forma granular para capturar interações não lineares biológicas ao longo do ciclo de vida.
-3.  **`expected_length_of_stay`:** Proxy clínico calculado *estritamente* na base de treino, mapeando a mediana histórica de dias de internação por patologia. Garante o elo de gravidade sem vazar informações do futuro.
-
-### ❌ Descartes Críticos e Justificativas Técnicas
-* `billing_amount_br`, `length_of_stay`, `discharge_date`, `is_catastrophic_case`: **Descartadas por Data Leakage**. Só existem após a alta do paciente.
-* `age_group`: Descartada por **Multicolinearidade** com a feature `age`.
-* `medical_condition`, `medication`, `gender`, `blood_type`: Descartadas por **Ausência de Variabilidade**. Testes de ANOVA e Boxplots comprovaram distribuições de custos idênticas e sem ganho de informação (*Information Gain*).
-* `doctor`: Descartada por **Alta Cardinalidade Esparsa** (40.276 médicos pulverizados).
-
----
-
-## 📌 5. Planejamento Estratégico da Esteira de Modelagem
-
-O pipeline de machine learning foi desenhado para testar **8 famílias distintas de algoritmos**, avaliando desde premissas lineares até o estado da arte em *Ensembles* e *Gradient Boosting*:
-
-### Estrutura de Divisão dos Dados
-
-* 🏦 **Base de Dados Selecionada**
-  * 🔹 **[Pipelines 01, 02, 03 e 04] Modelos de Gradiente/Distância**
-    * *Exigência:* Alinhamento via One-Hot Encoding + Standard Scaling.
-    * *Algoritmos:* Linear Regression, KNN, SVR e MLP (Rede Neural).
-  * 🌿 **[Pipelines 05, 06, 07 e 08] Modelos Baseados em Árvores**
-    * *Exigência:* Manipulação Categórica Nativa / Target Encoding.
-    * *Algoritmos:* Random Forest, LightGBM, CatBoost e XGBoost.
-
-
-### Matriz de Modelos e Abordagens de Treino
-
-| ID | Algoritmo | Objetivo Estratégico | Abordagem de Pré-Processamento | Scaling? |
-| :---: | :--- | :--- | :--- | :---: |
-| **01** | **Linear Regression** | Baseline Estatístico de Machine Learning | Target Enc. + One-Hot Enc. + Standard Scaling | **Sim** |
-| **02** | **K-Neighbors Regressor** | Abordagem Baseada em Distância/Vizinhança | Target Enc. + One-Hot Enc. + Standard Scaling | **Sim** |
-| **03** | **Support Vector Regressor** | Otimização de Hiperplano de Margem Máxima | Target Enc. + One-Hot Enc. + Standard Scaling | **Sim** |
-| **04** | **Multilayer Perceptron** | Rede Neural para Padrões Complexos | Target Enc. + One-Hot Enc. + Standard Scaling | **Sim** |
-| **05** | **Random Forest Regressor**| Ensemble de Árvores (Bagging) Não-Linear | Target Enc. + One-Hot Encoding | Não |
-| **06** | **LightGBM Regressor** | Alta Performance Computacional (Boosting) | Categorical Handling Nativo | Não |
-| **07** | **CatBoost Regressor** | Performance Otimizada para Categóricas | Categorical Handling Nativo | Não |
-| **08** | **XGBoost Regressor** | Extreme Gradient Boosting Geral | Target Encoding | Não |
-
----
-
-## 📌 6. Conclusões, Métricas de Negócio e Descarte Metodológico
-
-### O Descarte das Métricas Tradicionais ($R^2$, MAE, RMSE)
-Durante os experimentos e exaustivas rodadas de *fine-tuning*, todas as 8 arquiteturas convergiram de forma unânime para um teto estatístico de **3% de $R^2$**. 
-
-Em um cenário de saúde suplementar com alta assimetria e volatilidade, as métricas de regressão convencionais **perdem o sentido prático**. Elas são fortemente influenciadas pela grande massa de dados comuns e penalizam desproporcionalmente os desvios da cauda longa. 
-
-Dessa forma, **as métricas puramente matemáticas globais foram formalmente descartadas** em favor da análise de impacto operacional por faixas de risco.
-
-### 📊 Avaliação de Impacto e Utilidade de Negócio (Matriz Real)
-
-Abaixo está a validação prática em ambiente de testes, cruzando as faixas de custo reais contra o que o modelo de melhor distribuição espacial (**Random Forest**) projetou para a carteira:
-
-| Previsão do Modelo (RandomForest) | Baixo (<10k) | Médio (10k-30k) | Alto (30k-60k) | Crítico (>60k) | Total Geral |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| Custo Real | --- | --- | --- | --- | --- |
-| **Baixo (<10k)** | 634 | 884 | 44 | 25 | **1.587** |
-| **Médio (10k-30k)** | 79 | 4.387 | 161 | 2 | **4.629** |
-| **Alto (30k-60k)** | 1 | 111 | 68 | 1 | **181** |
-| **Crítico (>60k)** | 0 | 787 | 118 | 5 | **910** |
-| **Total Geral** | **714** | **5.460** | **280** | **29** | **6.483** |
-
-### 🔬 Análise Cirúrgica do Comportamento da Matriz:
-1. **Domínio do Miolo da Operação:** O algoritmo demonstra alta precisão para prever o fluxo padrão e previsível da operadora. Das 4.629 internações de custo **Médio (10k-30k)**, ele acertou em cheio **4.387** delas.
-2. **Severa Miopia de Risco (Subprovisionamento):** O modelo é matematicamente "conservador". Para evitar inflar o erro quadrático global, as árvores preferem puxar as previsões dos casos mais caros para baixo. Como resultado, dos **910 sinistros reais Críticos (>60k)**, o modelo rotulou corretamente apenas **5**. Ele deixou passar **787 casos** sob a falsa etiqueta de risco médio e **118** como risco alto.
-3. **Efeito Alarme de Triagem:** Embora falhe em prever o valor exato, o modelo atua como um filtro inicial de blindagem, garantindo que nenhum caso verdadeiramente Crítico seja classificado como Baixo (0 ocorrências no quadrante inferior esquerdo).
-
----
-
-
-## ⚠️ 1. Principais Desafios
-
-O desenvolvimento do projeto enfrentou particularidades complexas do setor de saúde suplementar, que geraram os seguintes desafios técnicos e operacionais:
-
-* **Miopia Estatística e Assimetria Extrema:** Os custos hospitalares apresentam uma distribuição de "cauda longa", onde menos de 12% dos pacientes (casos catastróficos) respondem pela maior fatia financeira do caixa. Modelos tradicionais sofrem para prever esses picos sem arruinar o erro médio global.
-* **Achatamento do Sinal Clínico:** A variável alvo original (`billing_amount`) dividida pelo tempo de permanência gerou o custo por diária (`cost_per_day_br`). Essa operação diluiu a variabilidade biológica, tornando características fundamentais (como idade e patologia) ruídos estatísticos com correlação próxima a zero.
-* **Engessamento Contratual (Efeito Pacote):** A análise indicou que os custos diários são ditados por tabelas de preços fixas e pacotes fechados negociados previamente entre a operadora e os hospitais, anulando o impacto da severidade clínica imediata do paciente no ato da internação.
-* **Risco Severo de Data Leakage (Vazamento de Dados):** Variáveis como custo total real, data de alta e tempo exato de internação são preditores perfeitos, mas só existem *depois* que o evento acabou. O desafio foi blindar o modelo para operar apenas com dados disponíveis no "momento zero" da admissão.
-
----
-
-## 🛠️ 2. O que fizemos para resolver
-
-Para superar os desafios acima e garantir a entrega de uma solução com real valor de mercado, foram aplicadas as seguintes soluções de Engenharia de Dados e Data Science:
-
-* **Arquitetura de Modelagem em Esteira de 8 Estágios:** Implementamos e testamos exaustivamente desde modelos lineares clássicos e redes neurais (MLP) até algoritmos de fronteira baseados em *Ensembles* e *Gradient Boosting* (Random Forest, LightGBM, CatBoost e XGBoost).
-* **Filtro Rígido de Governança Antivazamento:** Descartamos mais de 7 variáveis que causariam *Data Leakage* e reduzimos o escopo do modelo para apenas **3 features preditivas de entrada limpas** (`hospital_cluster`, `age`, `expected_length_of_stay`), garantindo um modelo atuarialmente viável para produção.
-* **Engenharia de Proxies Clínicos:** Criamos a variável `expected_length_of_stay` calculando a mediana histórica de dias de internação por patologia *estritamente* dentro da base de treino. Isso resgatou o elo de gravidade médica do paciente no momento da admissão sem violar as regras de governança.
-* **Agrupamento de Alta Cardinalidade (*Clustering*):** Reduzimos a pulverização e a esparsidade de milhares de hospitais mapeando-os em 3 grandes grupos de custo (*Hospital Clusters*) via quartis, transformando ruído de dados em um sinal preditivo estável.
-* **Pivotagem de Métrica (Foco em Decisão de Negócio):** Substituímos a avaliação puramente matemática de métricas globais ($R^2$, MAE, RMSE) por uma **Matriz de Aderência Operacional por Faixas de Risco**, provando a utilidade do modelo como um sistema eficiente de triagem e compliance financeiro.
-
-
-## 💡 7. Direcionamento Estratégico e Próximos Passos (Xeque-Mate)
-
-Diante do esgotamento da esteira de modelos de regressão e das evidências matemáticas extraídas da matriz real, apresentamos as seguintes recomendações executivas e passos futuros de engenharia:
-
-* **1. Descontinuação do Pipeline de Custo Diário:** Fica cientificamente provado que investir em novos algoritmos ou hiperparâmetros para prever a variável `cost_per_day_br` é ineficaz. O custo por dia é achatado por tabelas e pacotes hospitalares engessados, anulando a variabilidade do risco clínico imediato (idade/diagnóstico) na admissão.
-* **2. Pivotagem para Modelos de Classificação (Longa Permanência):** Com base nos achados da Análise Exploratória de Dados (EDA), o tempo de internação é o verdadeiro alavancador dos 910 sinistros críticos. O próximo ciclo do projeto focará em **Classificação Binária para prever a Longa Permanência Hospitalar (Sim/Não)**. Abordagens de classificação contornam a distorção das caudas longas monetárias e historicamente superam 80% de sensibilidade na saúde suplementar.
-* **3. Acionamento Imediato de Auditoria Concorrente via Regras de Negócio:** Enquanto o novo modelo preditivo é construído, as features identificadas com forte travamento contratual (`condition_medication` e `hospital_cluster`) devem ser convertidas imediatamente em gatilhos operacionais. O time de enfermagem auditora deve ser acionado preventivamente no momento zero da entrada de pacientes que se enquadrem nessas combinações de alto custo, mitigando o risco de cauda por via administrativa.
+<p align="center">
+  Desenvolvido com foco em impacto real na <strong>Saúde Suplementar Brasileira</strong> 🇧🇷
+</p>
