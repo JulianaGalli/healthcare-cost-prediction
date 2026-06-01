@@ -237,7 +237,7 @@ A IA **otimiza o uso do capital humano** ao selecionar cirurgicamente os casos m
 
 ### Pré-requisitos
 
-- Python 3.10+
+- Python 3.10
 - Jupyter Notebook ou JupyterLab
 
 ```
