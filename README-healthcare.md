@@ -48,7 +48,7 @@ Para comunicar os resultados a **gestores, recrutadores e áreas de negócio**, 
 | :--- | :--- | :--- |
 | 📄 **PDF** | `Predição_de_Custos_Assistenciais_e_Otimização_de_Sinistralidade_na_Saúde_Suplementar.pdf` | **Formato recomendado para visualização e compartilhamento.** Abre em qualquer dispositivo ou navegador, é renderizado diretamente pelo GitHub e preserva o layout exatamente como foi desenhado. |
 
-> **Boa prática de apresentação:** para público não técnico, o **PDF é o formato preferencial de distribuição** — ele "congela" a formatação e o layout, garantindo que a apresentação seja vista exatamente como foi criada, inclusive por quem não tem o PowerPoint. A apresentação prioriza **narrativa e impacto de negócio** em vez de detalhes técnicos, seguindo princípios de *data storytelling* ([Storytelling with Data](https://www.storytellingwithdata.com/)).
+> **Boa prática de apresentação:** para público não técnico, o **PDF é o formato preferencial de distribuição** — ele "congela" a formatação e o layout, garantindo que a apresentação seja vista exatamente como foi criada, inclusive por quem não tem o PowerPoint. A apresentação prioriza **narrativa e impacto de negócio** em vez de detalhes técnicos, seguindo princípios de *data storytelling*.
 
 ---
 
