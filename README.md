@@ -11,6 +11,48 @@
 
 ---
 
+## 📂 Estrutura e Organização do Repositório
+
+O repositório foi organizado para equilibrar **reprodutibilidade técnica** e **apresentação para diferentes públicos** (times de dados, gestores e áreas de negócio). Abaixo, o que você encontra e por quê.
+
+### Notebooks — por que dois arquivos?
+
+Notebooks Jupyter guardam os gráficos e as tabelas gerados **embutidos dentro do próprio arquivo** (`.ipynb`). Como este projeto produz dezenas de visualizações em alta resolução, o notebook completo fica naturalmente pesado — e o GitHub, que possui um **limite de tamanho para pré-visualização**, nem sempre consegue renderizá-lo no navegador (às vezes carrega, às vezes exibe *"Sorry, something went wrong. Reload?"*). Trata-se de uma **limitação conhecida da plataforma**, e não de um problema do código.
+
+Para garantir uma apresentação confiável, o projeto adota a **boa prática de manter duas versões do mesmo notebook**:
+
+| Arquivo | Finalidade | Quando usar |
+| :--- | :--- | :--- |
+| 📕 `healthcare-cost-prediction-runed.ipynb` | Versão **executada e completa**, com todos os gráficos, tabelas e resultados já renderizados. | Para **ler a análise e os resultados** sem precisar rodar o código. |
+| 📗 `healthcare-cost-prediction-outputs-cleared.ipynb` | Versão **leve, com as saídas limpas** (*cleared outputs*). Renderiza de forma rápida e estável no GitHub e mantém o histórico de versionamento limpo. | Para **clonar e reexecutar do zero**, ou para inspecionar o código quando a versão completa não carregar. |
+
+> 💡 **Dica:** se o notebook completo não abrir aqui no GitHub, cole o link do arquivo no [**nbviewer**](https://nbviewer.org/) — o renderizador oficial do Jupyter, que exibe notebooks pesados sem o limite de tamanho do GitHub.
+
+Manter uma versão com as saídas limpas segue a recomendação da comunidade de dados para **versionamento de notebooks** (ferramentas como o [`nbstripout`](https://github.com/kynan/nbstripout) automatizam essa limpeza), mantendo o repositório leve, os *diffs* legíveis e a renderização previsível — mais sobre o comportamento de arquivos `.ipynb` na [documentação oficial do GitHub](https://docs.github.com/en/repositories/working-with-files/using-files/working-with-non-code-files).
+
+### 📊 Pasta `plots/` — todos os gráficos do projeto
+
+Todas as visualizações geradas ao longo da análise estão salvas em alta resolução na pasta **[`plots/`](./plots)**, organizadas por etapa do trabalho:
+
+- **Análise Exploratória (EDA):** distribuições, sazonalidade das internações, faixas etárias, correlações (heatmap de Spearman) e curva de diluição do sinistro.
+- **Diagnóstico dos Modelos:** um gráfico por algoritmo avaliado (`diagnostico_01` a `diagnostico_08`), comparando valores previstos × reais.
+- **Explicabilidade (SHAP):** `shap_bar` (importância global), `shap_beeswarm` (impacto direcional) e `shap_waterfall_high_cost` (anatomia do caso crítico).
+
+Assim, é possível consultar qualquer gráfico diretamente, sem precisar abrir ou executar os notebooks.
+
+### 🎤 Apresentação Executiva (público não técnico)
+
+Para comunicar os resultados a **gestores, recrutadores e áreas de negócio**, o projeto inclui uma apresentação executiva em **dois formatos**:
+
+| Formato | Arquivo | Uso recomendado |
+| :--- | :--- | :--- |
+| 📄 **PDF** | `Predição_de_Custos_Assistenciais_e_Otimização_de_Sinistralidade_na_Saúde_Suplementar.pptx.pdf` | **Formato recomendado para visualização e compartilhamento.** Abre em qualquer dispositivo ou navegador, é renderizado diretamente pelo GitHub e preserva o layout exatamente como foi desenhado. |
+| 📽️ **PPTX** | `Predição_de_Custos_Assistenciais_e_Otimização_de_Sinistralidade_na_Saúde_Suplementar.pptx` | Arquivo **editável** (fonte original), para quem quiser adaptar ou reaproveitar os slides. |
+
+> **Boa prática de apresentação:** para público não técnico, o **PDF é o formato preferencial de distribuição** — ele "congela" a formatação e o layout, garantindo que a apresentação seja vista exatamente como foi criada, inclusive por quem não tem o PowerPoint instalado ([Microsoft Support](https://support.microsoft.com/en-us/office/save-powerpoint-presentations-as-pdf-files-9b5c786b-9c6e-4fe6-81f6-9372f77c47c8)). O `.pptx` permanece como fonte editável. A apresentação prioriza **narrativa e impacto de negócio** em vez de detalhes técnicos, seguindo princípios de *data storytelling* ([Storytelling with Data](https://www.storytellingwithdata.com/)).
+
+---
+
 ## 1. Contexto do Projeto
 
 A saúde suplementar brasileira enfrenta **desafios críticos na previsibilidade de custo dos pacientes na admissão**. Apesar de existirem padrões clínicos, as respostas humanas aos tratamentos são individuais e os desfechos financeiros são complexos, tornando difícil a identificação precoce de sinistros de alto risco.
@@ -253,8 +295,8 @@ venv\Scripts\activate        # Windows
 # Instale as dependências
 pip install -r requirements.txt
 
-# Execute o notebook
-jupyter notebook healthcare-cost-prediction.ipynb
+# Execute o notebook (versão leve, para rodar do zero)
+jupyter notebook healthcare-cost-prediction-outputs-cleared.ipynb
 ```
 
 ### Dependências principais
