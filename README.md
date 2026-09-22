@@ -174,7 +174,7 @@ O objetivo central é **identificar precocemente sinistros de alto risco** para:
 | 07_CatBoost | 15346.41 | 29209.04 | 0.0314 |
 | 04_MLP_Neural_Network | 15405.34 | 29264.65 | 0.0277 |
 | 05_Random_Forest | 15403.76 | 29265.70 | 0.0276 |
-| **06_LightGBM** | **LightGBM** ⭐ | **0.0266** | **15.407,71** | **29.285,30** |
+| **06_LightGBM** ⭐ | **15.407,71** | **29.285,30** | **0.0266** |
 | 08_XGBoost | 15414.64 | 29312.42 | 0.0245 |
 | 06_LightGBM_tuned | 12791.04 | 30788.55 | -0.0762 |
 | 03_Linear_SVR | 12940.04 | 31329.12 | -0.1143 |
